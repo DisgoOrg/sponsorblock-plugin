@@ -10,12 +10,12 @@ var (
 )
 
 func New() *Plugin {
-	plugin := &Plugin{}
-	plugin.eventExtensions = []lavalink.EventExtension{
-		&SegmentsLoadedHandler{Plugin: plugin},
-		&SegmentSkippedHandler{Plugin: plugin},
+	return &Plugin{
+		eventExtensions: []lavalink.EventExtension{
+			&SegmentsLoadedHandler{},
+			&SegmentSkippedHandler{},
+		},
 	}
-	return plugin
 }
 
 type Plugin struct {
@@ -26,9 +26,7 @@ func (p *Plugin) EventExtensions() []lavalink.EventExtension {
 	return p.eventExtensions
 }
 
-type SegmentsLoadedHandler struct {
-	*Plugin
-}
+type SegmentsLoadedHandler struct{}
 
 func (h *SegmentsLoadedHandler) Event() lavalink.EventType {
 	return "SegmentsLoaded"
@@ -48,9 +46,7 @@ func (h *SegmentsLoadedHandler) OnEventInvocation(node lavalink.Node, data []byt
 	})
 }
 
-type SegmentSkippedHandler struct {
-	*Plugin
-}
+type SegmentSkippedHandler struct{}
 
 func (h *SegmentSkippedHandler) Event() lavalink.EventType {
 	return "SegmentSkipped"
