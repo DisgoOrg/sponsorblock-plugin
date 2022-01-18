@@ -5,15 +5,13 @@ import (
 	"github.com/DisgoOrg/disgolink/lavalink"
 )
 
-var (
-	_ lavalink.EventExtensions = (*Plugin)(nil)
-)
+var _ lavalink.EventExtensions = (*Plugin)(nil)
 
 func New() *Plugin {
 	return &Plugin{
 		eventExtensions: []lavalink.EventExtension{
-			&SegmentsLoadedHandler{},
-			&SegmentSkippedHandler{},
+			SegmentsLoadedHandler{},
+			SegmentSkippedHandler{},
 		},
 	}
 }
@@ -26,12 +24,14 @@ func (p *Plugin) EventExtensions() []lavalink.EventExtension {
 	return p.eventExtensions
 }
 
+var _ lavalink.EventExtension = (*SegmentsLoadedHandler)(nil)
+
 type SegmentsLoadedHandler struct{}
 
-func (h *SegmentsLoadedHandler) Event() lavalink.EventType {
+func (h SegmentsLoadedHandler) Event() lavalink.EventType {
 	return "SegmentsLoaded"
 }
-func (h *SegmentsLoadedHandler) OnEventInvocation(node lavalink.Node, data []byte) {
+func (h SegmentsLoadedHandler) OnEvent(node lavalink.Node, data []byte) {
 	var e SegmentsLoadedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
 		node.Lavalink().Logger().Error("Failed to unmarshal SegmentsLoaded Event", err)
@@ -46,12 +46,14 @@ func (h *SegmentsLoadedHandler) OnEventInvocation(node lavalink.Node, data []byt
 	})
 }
 
+var _ lavalink.EventExtension = (*SegmentSkippedHandler)(nil)
+
 type SegmentSkippedHandler struct{}
 
-func (h *SegmentSkippedHandler) Event() lavalink.EventType {
+func (h SegmentSkippedHandler) Event() lavalink.EventType {
 	return "SegmentSkipped"
 }
-func (h *SegmentSkippedHandler) OnEventInvocation(node lavalink.Node, data []byte) {
+func (h SegmentSkippedHandler) OnEvent(node lavalink.Node, data []byte) {
 	var e SegmentSkippedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
 		node.Lavalink().Logger().Error("Failed to unmarshal SegmentSkipped Event", err)

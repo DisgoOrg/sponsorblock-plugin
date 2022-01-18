@@ -23,6 +23,7 @@ type Segment struct {
 
 type SegmentCategory string
 
+//goland:noinspection GoUnusedConst
 const (
 	SegmentCategorySponsor       = "sponsor"
 	SegmentCategorySelfpromo     = "selfpromo"
