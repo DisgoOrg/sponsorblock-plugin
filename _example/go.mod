@@ -1,13 +1,13 @@
-module github.com/DisgoOrg/sponsorblock-plugin/_example
+module github.com/disgoorg/sponsorblock-plugin/_example
 
-go 1.17
+go 1.18
 
 require (
 	github.com/disgoorg/disgo v0.14.1
 	github.com/disgoorg/disgolink/v2 v2.0.0-20230106185247-04a8046ba2d4
 	github.com/disgoorg/log v1.2.0
 	github.com/disgoorg/snowflake/v2 v2.0.1
-	github.com/disgoorg/sponsorblock-plugin v1.0.0
+	github.com/disgoorg/sponsorblock-plugin v0.0.0-20230106193746-1d48a21f36fc
 )
 
 require (

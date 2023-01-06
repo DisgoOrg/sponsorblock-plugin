@@ -4,7 +4,6 @@ import (
 	"github.com/disgoorg/disgolink/v2/disgolink"
 	"github.com/disgoorg/disgolink/v2/lavalink"
 	"github.com/disgoorg/snowflake/v2"
-	"time"
 )
 
 const (
@@ -39,14 +38,13 @@ func (e SegmentSkippedEvent) GuildID() snowflake.ID {
 }
 
 type Segment struct {
-	Category SegmentCategory `json:"category"`
-	Start    time.Duration   `json:"start"`
-	End      time.Duration   `json:"end"`
+	Category SegmentCategory   `json:"category"`
+	Start    lavalink.Duration `json:"start"`
+	End      lavalink.Duration `json:"end"`
 }
 
 type SegmentCategory string
 
-//goland:noinspection GoUnusedConst
 const (
 	SegmentCategorySponsor       = "sponsor"
 	SegmentCategorySelfpromo     = "selfpromo"

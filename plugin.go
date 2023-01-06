@@ -56,7 +56,7 @@ func (p *Plugin) GetCategories(ctx context.Context, node disgolink.Node, guildID
 func (p *Plugin) SetCategories(ctx context.Context, node disgolink.Node, guildID snowflake.ID, categories []string) error {
 	path := fmt.Sprintf("%s/v3/sessions/%s/players/%d/sponsorblock/categories", node.Config().RestURL(), node.SessionID(), guildID)
 
-	return p.do(node, ctx, http.MethodPost, path, categories, nil)
+	return p.do(node, ctx, http.MethodPut, path, categories, nil)
 }
 
 func (p *Plugin) DeleteCategories(ctx context.Context, node disgolink.Node, guildID snowflake.ID) error {
@@ -69,16 +69,20 @@ func (p *Plugin) do(node disgolink.Node, ctx context.Context, method string, pat
 
 	var rqBuff *bytes.Buffer
 	if rqBody != nil {
+		rqBuff = &bytes.Buffer{}
 		if err := json.NewEncoder(rqBuff).Encode(rqBody); err != nil {
 			return err
 		}
 	}
 
-	rq, err := http.NewRequestWithContext(ctx, http.MethodGet, path, rqBuff)
+	rq, err := http.NewRequestWithContext(ctx, method, path, rqBuff)
 	if err != nil {
 		return err
 	}
 	rq.Header.Set("Authorization", node.Config().Password)
+	if rqBody != nil {
+		rq.Header.Set("Content-Type", "application/json")
+	}
 
 	rs, err := p.httpClient.Do(rq)
 	if err != nil {
@@ -103,7 +107,7 @@ var _ disgolink.EventPlugin = (*segmentsLoadedHandler)(nil)
 type segmentsLoadedHandler struct{}
 
 func (h *segmentsLoadedHandler) Event() lavalink.EventType {
-	return "SegmentsLoaded"
+	return EventTypeSegmentsLoaded
 }
 func (h *segmentsLoadedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
 	var e SegmentsLoadedEvent
@@ -120,7 +124,7 @@ var _ disgolink.EventPlugin = (*segmentSkippedHandler)(nil)
 type segmentSkippedHandler struct{}
 
 func (h *segmentSkippedHandler) Event() lavalink.EventType {
-	return "SegmentSkipped"
+	return EventTypeSegmentSkipped
 }
 
 func (h *segmentSkippedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
