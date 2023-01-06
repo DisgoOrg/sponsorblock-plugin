@@ -1,57 +1,59 @@
 package main
 
 import (
-	"github.com/DisgoOrg/disgo/core/events"
-	"github.com/DisgoOrg/disgo/discord"
-	"github.com/DisgoOrg/disgolink/lavalink"
+	"context"
+	"github.com/disgoorg/disgo"
+	"github.com/disgoorg/disgo/bot"
+	"github.com/disgoorg/disgo/cache"
+	"github.com/disgoorg/disgo/discord"
+	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/disgo/gateway"
+	"github.com/disgoorg/disgolink/v2/disgolink"
+	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/snowflake/v2"
 	"os"
 
-	"github.com/DisgoOrg/disgo/core/bot"
-	"github.com/DisgoOrg/disgolink/disgolink"
-	"github.com/DisgoOrg/log"
+	"github.com/disgoorg/log"
 )
 
 var (
 	token   = os.Getenv("bot_token")
-	guildID = discord.Snowflake(os.Getenv("guild_id"))
+	guildID = snowflake.GetEnv("guild_id")
 )
 
 func main() {
 	log.SetLevel(log.LevelDebug)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	disgo, err := bot.New(token)
+	client, err := disgo.New(token,
+		bot.WithGatewayConfigOpts(
+			gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates),
+		),
+		bot.WithCacheConfigOpts(
+			cache.WithCacheFlags(cache.FlagVoiceStates),
+		),
+	)
 	if err != nil {
 		panic(err)
 	}
-	link := disgolink.New(disgo)
-
-	if _, err = disgo.SetGuildCommands(guildID, []discord.ApplicationCommandCreate{
-		discord.SlashCommandCreate{
-			Name:        "play",
-			Description: "plays music",
-			Options: []discord.ApplicationCommandOption{
-				discord.ApplicationCommandOptionString{
-					Name:        "query",
-					Description: "what to play",
-					Required:    true,
-				},
-			},
-			DefaultPermission: false,
-		},
-	}); err != nil {
-		panic(err)
-		return
-	}
-
-	disgo.AddEventListeners(&events.ListenerAdapter{
-		OnApplicationCommandInteraction: func(event *events.ApplicationCommandInteractionEvent) {
+	lavalinkClient := disgolink.New(client.ApplicationID(),
+		disgolink.WithPlugins(sponsorblock.New()),
+	)
+	client.AddEventListeners(
+		bot.NewListenerFunc(func(event *events.GuildVoiceStateUpdate) {
+			lavalinkClient.OnVoiceStateUpdate(context.TODO(), event.VoiceState.GuildID, event.VoiceState.ChannelID, event.VoiceState.SessionID)
+		}),
+		bot.NewListenerFunc(func(event *events.VoiceServerUpdate) {
+			lavalinkClient.OnVoiceServerUpdate(context.TODO(), event.GuildID, event.Token, *event.Endpoint)
+		}),
+		bot.NewListenerFunc(func(event *events.ApplicationCommandInteractionCreate) {
 			data := event.SlashCommandInteractionData()
-			if data.CommandName != "play" {
+			if data.CommandName() != "play" {
 				return
 			}
-			link.BestRestClient().LoadItemHandler(*data.Options.String("query"), lavalink.NewResultHandler(
+			lavalinkClient.BestNode().LoadTracks(context.TODO(), data.String("query"), disgolink.NewResultHandler(
 				func(track lavalink.Track) {
-					link.Player(*event.GuildID)
+
+					lavalinkClient.Player(*event.GuildID()).Update(context.TODO(), lavalink.WithTrack(track))
 				},
 				func(playlist lavalink.Playlist) {
 
@@ -62,10 +64,27 @@ func main() {
 				func() {
 
 				},
-				func(e lavalink.Exception) {
+				func(e error) {
 
 				},
 			))
+		}),
+	)
+
+	if _, err = client.Rest().SetGuildCommands(client.ApplicationID(), guildID, []discord.ApplicationCommandCreate{
+		discord.SlashCommandCreate{
+			Name:        "play",
+			Description: "plays music",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionString{
+					Name:        "query",
+					Description: "what to play",
+					Required:    true,
+				},
+			},
 		},
-	})
+	}); err != nil {
+		panic(err)
+		return
+	}
 }

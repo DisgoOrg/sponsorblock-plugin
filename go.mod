@@ -1,15 +1,15 @@
-module github.com/DisgoOrg/sponsorblock-plugin
+module github.com/disgoorg/sponsorblock-plugin
 
 go 1.17
 
-replace (
-	github.com/DisgoOrg/disgolink => ../disgolink
+require (
+	github.com/disgoorg/disgolink/v2 v2.0.0-20230106185247-04a8046ba2d4
+	github.com/disgoorg/snowflake/v2 v2.0.1
 )
 
-require github.com/DisgoOrg/disgolink v1.0.1-0.20220113111437-5e9e35a19e57
-
 require (
-	github.com/DisgoOrg/log v1.1.2 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
+	github.com/disgoorg/json v1.0.0 // indirect
+	github.com/disgoorg/log v1.2.0 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
+	golang.org/x/exp v0.0.0-20221207211629-99ab8fa1c11f // indirect
 )

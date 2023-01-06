@@ -1,18 +1,41 @@
 package sponsorblock
 
 import (
-	"github.com/DisgoOrg/disgolink/lavalink"
+	"github.com/disgoorg/disgolink/v2/disgolink"
+	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/snowflake/v2"
 	"time"
 )
 
+const (
+	EventTypeSegmentsLoaded = "SegmentsLoaded"
+	EventTypeSegmentSkipped = "SegmentSkipped"
+)
+
 type SegmentsLoadedEvent struct {
-	GuildID  string    `json:"guild_id"`
+	GuildID_ string    `json:"guild_id"`
 	Segments []Segment `json:"segments"`
 }
 
+func (e SegmentsLoadedEvent) Type() lavalink.EventType {
+	return EventTypeSegmentsLoaded
+}
+
+func (e SegmentsLoadedEvent) GuildID() snowflake.ID {
+	return snowflake.MustParse(e.GuildID_)
+}
+
 type SegmentSkippedEvent struct {
-	GuildID string  `json:"guild_id"`
-	Segment Segment `json:"segment"`
+	GuildID_ string  `json:"guild_id"`
+	Segment  Segment `json:"segment"`
+}
+
+func (e SegmentSkippedEvent) Type() lavalink.EventType {
+	return EventTypeSegmentSkipped
+}
+
+func (e SegmentSkippedEvent) GuildID() snowflake.ID {
+	return snowflake.MustParse(e.GuildID_)
 }
 
 type Segment struct {
@@ -36,11 +59,6 @@ const (
 )
 
 type SegmentEventListener interface {
-	OnSegmentsLoaded(player lavalink.Player, segments []Segment)
-	OnSegmentSkipped(player lavalink.Player, segment Segment)
+	OnSegmentsLoaded(player disgolink.Player, event SegmentsLoadedEvent)
+	OnSegmentSkipped(player disgolink.Player, event SegmentSkippedEvent)
 }
-
-type SegmentEventAdapter struct{}
-
-func (a SegmentEventAdapter) OnSegmentsLoaded(player lavalink.Player, segments []Segment) {}
-func (a SegmentEventAdapter) OnSegmentSkipped(player lavalink.Player, segment Segment)    {}
