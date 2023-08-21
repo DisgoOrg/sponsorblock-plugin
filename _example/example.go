@@ -3,22 +3,22 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
 	"github.com/disgoorg/disgo/cache"
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
 	"github.com/disgoorg/disgo/gateway"
-	"github.com/disgoorg/disgolink/v2/disgolink"
-	"github.com/disgoorg/disgolink/v2/lavalink"
+	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/log"
 	"github.com/disgoorg/snowflake/v2"
 	"github.com/disgoorg/sponsorblock-plugin"
-	"os"
-	"os/signal"
-	"strconv"
-	"syscall"
-
-	"github.com/disgoorg/log"
 )
 
 var (
@@ -39,7 +39,7 @@ func main() {
 			gateway.WithIntents(gateway.IntentGuilds, gateway.IntentGuildVoiceStates),
 		),
 		bot.WithCacheConfigOpts(
-			cache.WithCacheFlags(cache.FlagVoiceStates),
+			cache.WithCaches(cache.FlagVoiceStates),
 		),
 	)
 	if err != nil {
@@ -70,16 +70,16 @@ func main() {
 			data := event.SlashCommandInteractionData()
 			if data.CommandName() == "play" {
 
-				lavalinkClient.BestNode().LoadTracks(context.TODO(), data.String("query"), disgolink.NewResultHandler(
+				lavalinkClient.BestNode().LoadTracksHandler(context.TODO(), data.String("query"), disgolink.NewResultHandler(
 					func(track lavalink.Track) {
-						voiceState, ok := client.Caches().VoiceStates().Get(*event.GuildID(), event.User().ID)
+						voiceState, ok := client.Caches().VoiceState(*event.GuildID(), event.User().ID)
 						if !ok {
 							_ = event.CreateMessage(discord.MessageCreate{
 								Content: "you need to be in a voice channel",
 							})
 							return
 						}
-						_ = client.Connect(context.TODO(), *event.GuildID(), *voiceState.ChannelID)
+						_ = client.UpdateVoiceState(context.TODO(), *event.GuildID(), voiceState.ChannelID, false, false)
 
 						player := lavalinkClient.Player(*event.GuildID())
 						if err = sponsorblockPlugin.SetCategories(context.TODO(), player.Node(), *event.GuildID(), []string{"sponsor", "selfpromo", "interaction", "intro", "outro", "preview", "music_offtopic", "filler"}); err != nil {
