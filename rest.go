@@ -53,6 +53,8 @@ func SetCategories(client disgolink.RestClient, sessionID string, guildID snowfl
 		return err
 	}
 
+	rq.Header.Add("Content-Type", "application/json")
+
 	rs, err := client.Do(rq)
 	if err != nil {
 		return err
