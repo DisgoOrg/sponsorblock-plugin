@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/disgoorg/disgolink/v2/disgolink"
-	"github.com/disgoorg/disgolink/v2/lavalink"
-	"github.com/disgoorg/snowflake/v2"
 	"net/http"
 	"time"
+
+	"github.com/disgoorg/disgolink/v3/disgolink"
+	"github.com/disgoorg/disgolink/v3/lavalink"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 var (
