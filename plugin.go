@@ -2,6 +2,7 @@ package sponsorblock
 
 import (
 	"encoding/json"
+	"log/slog"
 
 	"github.com/disgoorg/disgolink/v3/disgolink"
 	"github.com/disgoorg/disgolink/v3/lavalink"
@@ -13,12 +14,24 @@ var (
 )
 
 func New() *Plugin {
+	return NewWithLogger(slog.Default())
+}
+
+func NewWithLogger(logger *slog.Logger) *Plugin {
 	return &Plugin{
 		eventPlugins: []disgolink.EventPlugin{
-			&segmentsLoadedHandler{},
-			&segmentSkippedHandler{},
-			&chaptersLoadedHandler{},
-			&chapterStartedHandler{},
+			&segmentsLoadedHandler{
+				logger: logger,
+			},
+			&segmentSkippedHandler{
+				logger: logger,
+			},
+			&chaptersLoadedHandler{
+				logger: logger,
+			},
+			&chapterStartedHandler{
+				logger: logger,
+			},
 		},
 	}
 }
@@ -41,7 +54,9 @@ func (p *Plugin) Version() string {
 
 var _ disgolink.EventPlugin = (*segmentsLoadedHandler)(nil)
 
-type segmentsLoadedHandler struct{}
+type segmentsLoadedHandler struct {
+	logger *slog.Logger
+}
 
 func (h *segmentsLoadedHandler) Event() lavalink.EventType {
 	return EventTypeSegmentsLoaded
@@ -49,7 +64,7 @@ func (h *segmentsLoadedHandler) Event() lavalink.EventType {
 func (h *segmentsLoadedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
 	var e SegmentsLoadedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
-		player.Lavalink().Logger().Error("Failed to unmarshal SegmentsLoaded Event", err)
+		h.logger.Error("Failed to unmarshal SegmentsLoaded Event", slog.Any("err", err))
 		return
 	}
 
@@ -58,7 +73,9 @@ func (h *segmentsLoadedHandler) OnEventInvocation(player disgolink.Player, data 
 
 var _ disgolink.EventPlugin = (*segmentSkippedHandler)(nil)
 
-type segmentSkippedHandler struct{}
+type segmentSkippedHandler struct {
+	logger *slog.Logger
+}
 
 func (h *segmentSkippedHandler) Event() lavalink.EventType {
 	return EventTypeSegmentSkipped
@@ -67,14 +84,16 @@ func (h *segmentSkippedHandler) Event() lavalink.EventType {
 func (h *segmentSkippedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
 	var e SegmentSkippedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
-		player.Lavalink().Logger().Error("Failed to unmarshal SegmentSkipped Event", err)
+		h.logger.Error("Failed to unmarshal SegmentSkipped Event", err)
 		return
 	}
 
 	player.Lavalink().EmitEvent(player, e)
 }
 
-type chaptersLoadedHandler struct{}
+type chaptersLoadedHandler struct {
+	logger *slog.Logger
+}
 
 func (h *chaptersLoadedHandler) Event() lavalink.EventType {
 	return EventTypeChaptersLoaded
@@ -83,7 +102,7 @@ func (h *chaptersLoadedHandler) Event() lavalink.EventType {
 func (h *chaptersLoadedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
 	var e ChaptersLoadedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
-		player.Lavalink().Logger().Error("Failed to unmarshal ChaptersLoaded Event", err)
+		h.logger.Error("Failed to unmarshal ChaptersLoaded Event", err)
 		return
 	}
 
@@ -92,7 +111,9 @@ func (h *chaptersLoadedHandler) OnEventInvocation(player disgolink.Player, data 
 
 var _ disgolink.EventPlugin = (*chapterStartedHandler)(nil)
 
-type chapterStartedHandler struct{}
+type chapterStartedHandler struct {
+	logger *slog.Logger
+}
 
 func (h *chapterStartedHandler) Event() lavalink.EventType {
 	return EventTypeChapterStarted
@@ -101,7 +122,7 @@ func (h *chapterStartedHandler) Event() lavalink.EventType {
 func (h *chapterStartedHandler) OnEventInvocation(player disgolink.Player, data []byte) {
 	var e ChapterStartedEvent
 	if err := json.Unmarshal(data, &e); err != nil {
-		player.Lavalink().Logger().Error("Failed to unmarshal ChapterStarted Event", err)
+		h.logger.Error("Failed to unmarshal ChapterStarted Event", err)
 		return
 	}
 

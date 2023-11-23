@@ -1,6 +1,6 @@
 module github.com/disgoorg/sponsorblock-plugin/_example
 
-go 1.18
+go 1.21
 
 require (
 	github.com/disgoorg/disgo v0.16.8
