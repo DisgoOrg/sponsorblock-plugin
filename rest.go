@@ -2,6 +2,7 @@ package sponsorblock
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 
@@ -12,8 +13,8 @@ import (
 )
 
 // GetCategories gets the categories to skip for the guild.
-func GetCategories(client disgolink.RestClient, sessionID string, guildID snowflake.ID) ([]SegmentCategory, error) {
-	rq, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), nil)
+func GetCategories(ctx context.Context, client disgolink.RestClient, sessionID string, guildID snowflake.ID) ([]SegmentCategory, error) {
+	rq, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +44,12 @@ func GetCategories(client disgolink.RestClient, sessionID string, guildID snowfl
 }
 
 // SetCategories sets the categories to skip for the guild.
-func SetCategories(client disgolink.RestClient, sessionID string, guildID snowflake.ID, categories []SegmentCategory) error {
+func SetCategories(ctx context.Context, client disgolink.RestClient, sessionID string, guildID snowflake.ID, categories []SegmentCategory) error {
 	buff := new(bytes.Buffer)
 	if err := json.NewEncoder(buff).Encode(categories); err != nil {
 		return err
 	}
-	rq, err := http.NewRequest(http.MethodPut, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), buff)
+	rq, err := http.NewRequestWithContext(ctx, http.MethodPut, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), buff)
 	if err != nil {
 		return err
 	}
@@ -74,8 +75,8 @@ func SetCategories(client disgolink.RestClient, sessionID string, guildID snowfl
 }
 
 // DeleteCategories deletes the categories to skip for the guild.
-func DeleteCategories(client disgolink.RestClient, sessionID string, guildID snowflake.ID) error {
-	rq, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), nil)
+func DeleteCategories(ctx context.Context, client disgolink.RestClient, sessionID string, guildID snowflake.ID) error {
+	rq, err := http.NewRequestWithContext(ctx, http.MethodDelete, fmt.Sprintf("/v4/sessions/%s/players/%s/sponsorblock/categories", sessionID, guildID), nil)
 	if err != nil {
 		return err
 	}
